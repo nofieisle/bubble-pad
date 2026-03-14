@@ -5,3 +5,4 @@ bubble-pad-extension/
 .env.*
 *.log
 .DS_Store
+.claude/
