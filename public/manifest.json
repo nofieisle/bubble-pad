@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Bubble Pad",
+  "version": "1.0.0",
+  "description": "ショートカットキーでフローティングテキストエリアを表示し、下書きを作成・コピーできる拡張機能",
+  "permissions": ["clipboardWrite"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "commands": {
+    "toggle-bubble-pad": {
+      "suggested_key": {
+        "default": "Alt+B"
+      },
+      "description": "Bubble Padの表示/非表示を切り替え"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
