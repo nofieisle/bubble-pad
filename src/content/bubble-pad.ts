@@ -15,6 +15,15 @@ export class BubblePad {
   private dragOffsetX = 0;
   private dragOffsetY = 0;
 
+  // Resize state
+  private isResizing = false;
+  private resizeEdge = "";
+  private resizeStartX = 0;
+  private resizeStartY = 0;
+  private resizeStartRect = { left: 0, top: 0, width: 0, height: 0 };
+  private static readonly MIN_WIDTH = 250;
+  private static readonly MIN_HEIGHT = 180;
+
   constructor() {
     this.host = document.createElement("div");
     this.host.id = "bubble-pad-host";
@@ -40,6 +49,14 @@ export class BubblePad {
     const container = document.createElement("div");
     container.className = "bp-container";
     container.innerHTML = `
+      <div class="bp-resize bp-resize-n"></div>
+      <div class="bp-resize bp-resize-s"></div>
+      <div class="bp-resize bp-resize-e"></div>
+      <div class="bp-resize bp-resize-w"></div>
+      <div class="bp-resize bp-resize-ne"></div>
+      <div class="bp-resize bp-resize-nw"></div>
+      <div class="bp-resize bp-resize-se"></div>
+      <div class="bp-resize bp-resize-sw"></div>
       <div class="bp-header">
         <span class="bp-title">Bubble Pad</span>
         <div class="bp-actions">
@@ -93,19 +110,36 @@ export class BubblePad {
       e.preventDefault();
     });
 
-    // Use document-level listeners for smooth dragging
+    // Resize handles
+    this.container.querySelectorAll<HTMLDivElement>(".bp-resize").forEach((handle) => {
+      handle.addEventListener("mousedown", (e: MouseEvent) => {
+        this.isResizing = true;
+        this.resizeEdge = handle.className.replace("bp-resize bp-resize-", "");
+        this.resizeStartX = e.clientX;
+        this.resizeStartY = e.clientY;
+        const rect = this.container.getBoundingClientRect();
+        this.resizeStartRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+        e.preventDefault();
+      });
+    });
+
+    // Document-level listeners for drag and resize
     document.addEventListener("mousemove", (e: MouseEvent) => {
-      if (!this.isDragging) return;
-      const x = e.clientX - this.dragOffsetX;
-      const y = e.clientY - this.dragOffsetY;
-      this.container.style.left = `${x}px`;
-      this.container.style.top = `${y}px`;
-      this.container.style.right = "auto";
-      this.container.style.bottom = "auto";
+      if (this.isDragging) {
+        const x = e.clientX - this.dragOffsetX;
+        const y = e.clientY - this.dragOffsetY;
+        this.container.style.left = `${x}px`;
+        this.container.style.top = `${y}px`;
+        this.container.style.right = "auto";
+        this.container.style.bottom = "auto";
+      } else if (this.isResizing) {
+        this.handleResize(e);
+      }
     });
 
     document.addEventListener("mouseup", () => {
       this.isDragging = false;
+      this.isResizing = false;
     });
 
     // Prevent page shortcuts while typing + Esc to close
@@ -116,6 +150,42 @@ export class BubblePad {
       }
       e.stopPropagation();
     });
+  }
+
+  private handleResize(e: MouseEvent): void {
+    const dx = e.clientX - this.resizeStartX;
+    const dy = e.clientY - this.resizeStartY;
+    const { left, top, width, height } = this.resizeStartRect;
+    const edge = this.resizeEdge;
+
+    let newLeft = left;
+    let newTop = top;
+    let newWidth = width;
+    let newHeight = height;
+
+    if (edge.includes("e")) {
+      newWidth = Math.max(BubblePad.MIN_WIDTH, width + dx);
+    }
+    if (edge.includes("w")) {
+      const w = Math.max(BubblePad.MIN_WIDTH, width - dx);
+      newLeft = left + (width - w);
+      newWidth = w;
+    }
+    if (edge.includes("s")) {
+      newHeight = Math.max(BubblePad.MIN_HEIGHT, height + dy);
+    }
+    if (edge.includes("n")) {
+      const h = Math.max(BubblePad.MIN_HEIGHT, height - dy);
+      newTop = top + (height - h);
+      newHeight = h;
+    }
+
+    this.container.style.left = `${newLeft}px`;
+    this.container.style.top = `${newTop}px`;
+    this.container.style.right = "auto";
+    this.container.style.bottom = "auto";
+    this.container.style.width = `${newWidth}px`;
+    this.container.style.height = `${newHeight}px`;
   }
 
   private updateCharCount(): void {
