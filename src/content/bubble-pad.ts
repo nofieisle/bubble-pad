@@ -17,7 +17,7 @@ export class BubblePad {
   constructor() {
     this.host = document.createElement("div");
     this.host.id = "bubble-pad-host";
-    this.shadow = this.host.attachShadow({ mode: "closed" });
+    this.shadow = this.host.attachShadow({ mode: "closed", delegatesFocus: true });
 
     // Inject styles
     const style = document.createElement("style");
@@ -107,8 +107,12 @@ export class BubblePad {
       this.isDragging = false;
     });
 
-    // Prevent page shortcuts while typing
+    // Prevent page shortcuts while typing + Esc to close
     this.textarea.addEventListener("keydown", (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        this.hide();
+        return;
+      }
       e.stopPropagation();
     });
   }
@@ -154,7 +158,10 @@ export class BubblePad {
     this.container.style.top = "";
     this.container.style.right = "";
     this.container.style.bottom = "";
-    this.textarea.focus();
+    setTimeout(() => {
+      this.host.focus();
+      this.textarea.focus();
+    }, 50);
   }
 
   private hide(): void {
