@@ -97,7 +97,7 @@ export class BubblePad {
 
     // Close
     closeBtn.addEventListener("click", () => {
-      this.hide();
+      this.hide(false);
     });
 
     // Drag
@@ -145,7 +145,7 @@ export class BubblePad {
     // Prevent page shortcuts while typing + Esc to close
     this.textarea.addEventListener("keydown", (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        this.hide();
+        this.hide(false);
         return;
       }
       e.stopPropagation();
@@ -236,12 +236,46 @@ export class BubblePad {
     }, 50);
   }
 
-  private hide(): void {
+  private hide(insertText = true): void {
     this.visible = false;
     this.container.classList.remove("bp-visible");
+    const text = this.textarea.value;
     if (this.previousFocus) {
       this.previousFocus.focus();
+      if (insertText && text) {
+        this.insertTextAtTarget(this.previousFocus, text);
+        this.textarea.value = "";
+        this.updateCharCount();
+      }
       this.previousFocus = null;
+    }
+  }
+
+  private insertTextAtTarget(target: HTMLElement, text: string): void {
+    // input / textarea
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+      const start = target.selectionStart ?? target.value.length;
+      const end = target.selectionEnd ?? target.value.length;
+      target.setRangeText(text, start, end, "end");
+      target.dispatchEvent(new Event("input", { bubbles: true }));
+      return;
+    }
+
+    // contenteditable
+    if (target.isContentEditable) {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(document.createTextNode(text));
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } else {
+        target.append(text);
+      }
+      target.dispatchEvent(new Event("input", { bubbles: true }));
+      return;
     }
   }
 }
