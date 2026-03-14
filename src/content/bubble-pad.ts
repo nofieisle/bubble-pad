@@ -8,6 +8,7 @@ export class BubblePad {
   private charCount: HTMLSpanElement;
   private copyBtn: HTMLButtonElement;
   private visible = false;
+  private previousFocus: HTMLElement | null = null;
 
   // Drag state
   private isDragging = false;
@@ -151,6 +152,7 @@ export class BubblePad {
   }
 
   private show(): void {
+    this.previousFocus = document.activeElement as HTMLElement | null;
     this.visible = true;
     this.container.classList.add("bp-visible");
     // Reset position to default
@@ -167,5 +169,9 @@ export class BubblePad {
   private hide(): void {
     this.visible = false;
     this.container.classList.remove("bp-visible");
+    if (this.previousFocus) {
+      this.previousFocus.focus();
+      this.previousFocus = null;
+    }
   }
 }
