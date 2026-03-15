@@ -240,15 +240,16 @@ export class BubblePad {
     this.visible = false;
     this.container.classList.remove("bp-visible");
     const text = this.textarea.value;
-    if (this.previousFocus) {
-      this.previousFocus.focus();
-      if (insertText && text) {
+    if (insertText && text) {
+      navigator.clipboard.writeText(text).catch(() => {});
+      if (this.previousFocus) {
+        this.previousFocus.focus();
         this.insertTextAtTarget(this.previousFocus, text);
-        this.textarea.value = "";
-        this.updateCharCount();
       }
-      this.previousFocus = null;
+      this.textarea.value = "";
+      this.updateCharCount();
     }
+    this.previousFocus = null;
   }
 
   private insertTextAtTarget(target: HTMLElement, text: string): void {
