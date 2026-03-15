@@ -1,6 +1,5 @@
 node_modules/
 dist/
-bubble-pad-extension/
 .env
 .env.*
 *.log

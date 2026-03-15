@@ -1,0 +1,1 @@
+chrome.commands.onCommand.addListener(t=>{t==="toggle-bubble-pad"&&chrome.tabs.query({active:!0,currentWindow:!0},a=>{var o;const e=(o=a[0])==null?void 0:o.id;e!==void 0&&chrome.tabs.sendMessage(e,{action:"toggle-bubble-pad"})})});
