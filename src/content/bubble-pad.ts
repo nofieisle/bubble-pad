@@ -215,7 +215,19 @@ export class BubblePad {
 
   toggle(): void {
     if (this.visible) {
-      this.hide();
+      // If focus is outside bubble pad, just refocus the textarea instead of closing
+      const activeEl = document.activeElement;
+      const focusInHost =
+        this.host === activeEl ||
+        this.host.contains(activeEl) ||
+        this.shadow.activeElement != null;
+      if (focusInHost) {
+        this.hide();
+      } else {
+        this.previousFocus = activeEl as HTMLElement | null;
+        this.host.focus();
+        this.textarea.focus();
+      }
     } else {
       this.show();
     }
